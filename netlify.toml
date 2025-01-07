@@ -1,0 +1,9 @@
+[build]
+  functions = "netlify-functions"  # Ensure this matches your function folder
+  publish = "build"  # Set to your build output folder (for front-end apps like React, Angular, etc.)
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = true
