@@ -13,7 +13,7 @@ const cors = require('cors');
 const { default: axios } = require('axios');
 app.use(
     cors({
-      origin: "http://localhost:3000/", // your frontend URL (React app)
+      origin: "https://tangerine-travesseiro-be1b08.netlify.app/", // your frontend URL (React app)
       credentials: true,
     })
 );

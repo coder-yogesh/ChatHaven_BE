@@ -46,14 +46,14 @@ router.get(
     const token = jwt.sign({ user: user._json }, secretKey, { expiresIn: "1h" });
 
     // Redirect with the token
-    res.redirect(`https://chathaven-932ad.web.app/dashboard?token=${token}`);
+    res.redirect(`https://tangerine-travesseiro-be1b08.netlify.app/dashboard?token=${token}`);
   }
 );
 
 // Logout Route
 router.get("/logout", (req, res) => {
   req.logout(() => {
-    res.redirect('https://chathaven-932ad.web.app/');
+    res.redirect('https://tangerine-travesseiro-be1b08.netlify.app/');
   });
 });
 
