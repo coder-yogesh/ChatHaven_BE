@@ -36,3 +36,6 @@ Thumbs.db
 # npm package distribution
 dist/
 build/
+
+# Local Netlify folder
+.netlify

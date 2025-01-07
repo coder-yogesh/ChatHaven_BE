@@ -123,7 +123,6 @@ app.get('/proxy-image', async (req, res) => {
       }
 })
 app.use("/api/auth", authRoutes);
-
 const port = 4000;
 app.listen(port, () => {
     console.log('server running');
