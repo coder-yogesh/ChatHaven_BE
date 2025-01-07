@@ -1,8 +1,2 @@
 [build]
-  command = "npm run build" # Not needed if there's no build process
-  publish = "."
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+  functions = "netlify-functions"

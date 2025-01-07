@@ -6,6 +6,7 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const bodyParse = require('body-parser');
 const dotenv = require('dotenv');
 const authRoutes = require("./auth");
+const serverless = require('serverless-http')
 
 
 const app = express();
@@ -123,7 +124,11 @@ app.get('/proxy-image', async (req, res) => {
       }
 })
 app.use("/api/auth", authRoutes);
+app.get('/', (req, res) => {
+    res.send('Hello from Node.js server on Netlify!');
+});
 const port = 4000;
 app.listen(port, () => {
     console.log('server running');
 })
+module.exports.handler = serverless(app);
