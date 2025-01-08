@@ -10,7 +10,7 @@ app.use(bodyParse.json());
 dotenv.config();
 app.use(
     cors({
-      origin: "http://localhost:3000", // your frontend URL (React app)
+      origin: process.env.CORS_ORIGIN || "http://localhost:3000", // your frontend URL (React app)
       credentials: true,
     })
 );
