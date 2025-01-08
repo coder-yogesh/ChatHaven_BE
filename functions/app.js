@@ -1,13 +1,3 @@
-const express = require("express");
-const serverless = require("serverless-http");
-const app = express();
-const router = express.Router();
-
-router.get("/", (req, res) => {
-    res.send("App is running..");
-});
-
-const express = require('express');
 const passport = require('passport');
 const session = require('express-session');
 // const { OpenAI } = require('openai');
@@ -18,6 +8,16 @@ const authRoutes = require("./auth");
 
 const cors = require('cors');
 const { default: axios } = require('axios');
+
+const express = require("express");
+const serverless = require("serverless-http");
+const app = express();
+const router = express.Router();
+
+router.get("/", (req, res) => {
+    res.send("App is running..");
+});
+
 app.use(
     cors({
       origin: "http://localhost:3000", // your frontend URL (React app)
