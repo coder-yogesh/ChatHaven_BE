@@ -5,9 +5,15 @@ const router = express.Router();
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const bodyParse = require('body-parser');
 const dotenv = require('dotenv');
+const cors = require('cors');
 app.use(bodyParse.json());
 dotenv.config();
-
+app.use(
+    cors({
+      origin: "http://localhost:3000", // your frontend URL (React app)
+      credentials: true,
+    })
+);
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 async function callChatGPT(prompt) {
