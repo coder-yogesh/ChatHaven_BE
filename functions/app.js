@@ -6,7 +6,7 @@ const app = express();
 const dotenv = require('dotenv');
 dotenv.config();
 const router = express.Router();
-const genAI = new GoogleGenerativeAI("910763085941-e88l589nsq6k4v0usvgmdqqr7nrbgg18.apps.googleusercontent.com");
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 console.log('keyyyyy', process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
