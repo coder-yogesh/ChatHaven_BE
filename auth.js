@@ -46,14 +46,14 @@ router.get(
     const token = jwt.sign({ user: user._json }, secretKey, { expiresIn: "1h" });
 
     // Redirect with the token
-    res.redirect(`http://localhost:3000/dashboard?token=${token}`);
+    res.redirect(`${process.env.FRONT_END_URL}/dashboard?token=${token}`);
   }
 );
 
 // Logout Route
 router.get("/logout", (req, res) => {
   req.logout(() => {
-    res.redirect('http://localhost:3000/');
+    res.redirect(`${process.env.FRONT_END_URL}/`);
   });
 });
 
