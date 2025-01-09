@@ -6,7 +6,15 @@ const app = express();
 const dotenv = require('dotenv');
 dotenv.config();
 const router = express.Router();
+const authRoutes = require("../auth");
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+console.log('keyyyyy', process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
+async function callChatGPT(prompt) {
+    const response = await model.generateContent(prompt);
+    return response.response.text();
+}
 let records = [];
 app.use(bodyParse.json());
 
@@ -14,7 +22,16 @@ router.get('/', (req, res) => {
   res.send('App is running..');
 });
 
-router.post('/add', (req, res) => {
+router.post('/add', async (req, res) => {
+    console.log('req', req.body);
+  const { prompt } = req.body;
+  if (!prompt) {
+    return res.status(400).json({ error: 'Promptttttt is required' });
+  }
+  const response = await callChatGPT(prompt);
+  
+  console.log('testting')
+  res.status(200).json({ message: response });
   res.send('New record added.');
 });
 
@@ -56,13 +73,6 @@ router.get('/demo', (req, res) => {
   ]);
 });
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-async function callChatGPT(prompt) {
-    const response = await model.generateContent(prompt);
-    return response.response.text();
-}
 router.post('/chatgpt', async (req, res) => {
     try {
         console.log('req', req.body);
@@ -77,5 +87,6 @@ router.post('/chatgpt', async (req, res) => {
         return res.status(500).json({ error: 'Internal server error' });
     }
 });
+router.use("/api/auth", authRoutes);
 app.use('/.netlify/functions/app', router);
 module.exports.handler = serverless(app);
