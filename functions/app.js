@@ -2,6 +2,7 @@ const express = require('express');
 const serverless = require('serverless-http');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const bodyParse = require('body-parser');
+const session = require('express-session');
 const app = express();
 const dotenv = require('dotenv');
 dotenv.config();
@@ -17,7 +18,15 @@ async function callChatGPT(prompt) {
 }
 let records = [];
 app.use(bodyParse.json());
-
+app.use(
+    session({
+        secret: process.env.SESSION_SECRET,
+        resave: false,
+        saveUninitialized: true
+    })
+);
+app.use(passport.initialize());
+app.use(passport.session());
 router.get('/', (req, res) => {
   res.send('App is running..');
 });
