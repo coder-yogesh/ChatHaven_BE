@@ -6,6 +6,7 @@ const app = express();
 const dotenv = require('dotenv');
 dotenv.config();
 const router = express.Router();
+const authRoutes = require("../auth");
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 console.log('keyyyyy', process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
@@ -86,5 +87,6 @@ router.post('/chatgpt', async (req, res) => {
         return res.status(500).json({ error: 'Internal server error' });
     }
 });
+router.use("/api/auth", authRoutes);
 app.use('/.netlify/functions/app', router);
 module.exports.handler = serverless(app);
