@@ -98,6 +98,7 @@ async function callChatGPT(prompt) {
 }
 app.post('/chatgpt', async (req, res) => {
     try {
+        console.log('body', req.body);
         const { prompt } = req.body;
 
         if (!prompt) {
