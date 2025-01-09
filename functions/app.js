@@ -28,7 +28,15 @@ app.use(
 );
 app.use(passport.initialize());
 app.use(passport.session());
-app.use(require('cors'));
+
+const cors = require('cors');
+
+app.use(
+    cors({
+      origin: `${process.env.FRONT_END_URL}`, // your frontend URL (React app)
+      credentials: true,
+    })
+);
 router.get('/', (req, res) => {
   res.send('App is running..');
 });
