@@ -2,6 +2,7 @@ const express = require('express');
 const serverless = require('serverless-http');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const bodyParse = require('body-parser');
+const passport = require('passport');
 const session = require('express-session');
 const app = express();
 const dotenv = require('dotenv');
