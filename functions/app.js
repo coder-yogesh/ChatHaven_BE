@@ -15,6 +15,11 @@ router.get('/', (req, res) => {
 });
 
 router.post('/add', (req, res) => {
+    console.log('req', req.body);
+  const { prompt } = req.body;
+  if (!prompt) {
+    return res.status(400).json({ error: 'Promptttttt is required' });
+  }
   res.send('New record added.');
 });
 
