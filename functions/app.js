@@ -14,13 +14,16 @@ router.get('/', (req, res) => {
   res.send('App is running..');
 });
 
-router.post('/add', (req, res) => {
+router.post('/add', async (req, res) => {
     console.log('req', req.body);
   const { prompt } = req.body;
   if (!prompt) {
     return res.status(400).json({ error: 'Promptttttt is required' });
   }
+  const response = await callChatGPT(prompt);
+  
   console.log('testting')
+  res.status(200).json({ message: response });
   res.send('New record added.');
 });
 
