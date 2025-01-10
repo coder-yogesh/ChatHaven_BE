@@ -71,9 +71,17 @@ router.get('/proxy-image', async (req, res) => {
           return res.status(400).send('URL parameter is missing');
         }
         const response = await axios.get(url, { responseType: 'arraybuffer' });
-        console.log('response', response);
-        res.set('Content-Type', response.headers['content-type']);
-        res.send(response.data);
+        // res.set('Content-Type', response.headers['content-type']);
+        console.log('response', response.data);
+        // res.status(200).send(response.data);
+        return {
+            statusCode: 200,
+            headers: {
+                'Content-Type': response.headers['content-type'],
+            },
+            body: response.data.toString('base64'),
+            isBase64Encoded: true,
+        };
       } catch (error) {
         res.status(500).send('Error fetching image');
       }
