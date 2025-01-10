@@ -67,9 +67,11 @@ router.get('/proxy-image', async (req, res) => {
         const { url } = req.query;
         console.log('image', req.query);
         if (!url) {
+            console.log('no url', url);
           return res.status(400).send('URL parameter is missing');
         }
         const response = await axios.get(url, { responseType: 'arraybuffer' });
+        console.log('response', response);
         res.set('Content-Type', response.headers['content-type']);
         res.send(response.data);
       } catch (error) {
