@@ -65,6 +65,7 @@ router.put('/', (req, res) => {
 router.get('/proxy-image', async (req, res) => {
     try {
         const { url } = req.query;
+        console.log('image', req.query);
         if (!url) {
           return res.status(400).send('URL parameter is missing');
         }
