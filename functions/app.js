@@ -31,18 +31,14 @@ app.use(passport.session());
 
 const cors = require('cors');
 const { default: axios } = require('axios');
-app.use(
-    cors({
-      origin: `${process.env.FRONT_END_URL}`, // your frontend URL (React app)
-      credentials: true,
-    })
-);
+// app.use(cors());
+app.use(cors({ origin: process.env.FRONT_END_URL }));
 router.get('/', (req, res) => {
   res.send('App is running..');
 });
 
 router.post('/add', async (req, res) => {
-    console.log('req', req.body);
+  console.log('req', req.body);
   const { prompt } = req.body;
   if (!prompt) {
     return res.status(400).json({ error: 'Promptttttt is required' });
