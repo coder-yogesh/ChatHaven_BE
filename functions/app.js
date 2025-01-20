@@ -32,7 +32,11 @@ app.use(passport.session());
 const cors = require('cors');
 const { default: axios } = require('axios');
 // app.use(cors());
-app.use(cors({ origin: process.env.FRONT_END_URL }));
+app.use(cors({
+  origin: `${process.env.FRONT_END_URL}`, // Replace with your Netlify site URL
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 router.get('/', (req, res) => {
   res.send('App is running..');
 });
