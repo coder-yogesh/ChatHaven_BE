@@ -151,4 +151,13 @@ router.post('/chatgpt', async (req, res) => {
         return res.status(500).json({ error: 'Internal server error' });
     }
 });
-module.exports.handler = serverless(app);
+const port = process.env.BACK_END_PORT;
+console.log('main port', port);
+if (port === 4000) {
+  app.listen(port, () => {
+    console.log('server running');
+  })
+} else {
+  module.exports.handler = serverless(app);
+}
+// module.exports.handler = serverless(app);
