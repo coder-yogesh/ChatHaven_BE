@@ -78,10 +78,18 @@ router.get('/proxy-image', async (req, res) => {
 
     const response = await axios.get(url, { responseType: 'arraybuffer', timeout: 5000 });
     
-    res.set('Content-Type', response.headers['content-type']);
+    // res.set('Content-Type', response.headers['content-type']);
     console.log('resssss', response.data);
-    res.send(response.data);
-
+    // res.send(response.data.toString('base64'));
+    return {
+      statusCode: 200,
+      headers: {
+        'Content-Type': response.headers['content-type'],
+        'Access-Control-Allow-Origin': '*',
+      },
+      body: response.data.toString('base64'),
+      isBase64Encoded: true,
+    };
   } catch (error) {
     console.error('Error fetching image:', error.message);
     res.status(500).json({ error: 'Error fetching image' });
@@ -143,4 +151,13 @@ router.post('/chatgpt', async (req, res) => {
         return res.status(500).json({ error: 'Internal server error' });
     }
 });
-module.exports.handler = serverless(app);
+const port = process.env.BACK_END_PORT;
+console.log('main port', port);
+if (port === 4000) {
+  app.listen(port, () => {
+    console.log('server running');
+  })
+} else {
+  module.exports.handler = serverless(app);
+}
+// module.exports.handler = serverless(app);
