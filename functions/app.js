@@ -4,11 +4,15 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const bodyParse = require('body-parser');
 const passport = require('passport');
 const session = require('express-session');
+const cors = require('cors');
+const { default: axios } = require('axios');
 const app = express();
+app.use(cors());
 const dotenv = require('dotenv');
 dotenv.config();
 const router = express.Router();
 const authRoutes = require("../auth");
+
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 console.log('keyyyyy', process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
@@ -29,14 +33,9 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-const cors = require('cors');
-const { default: axios } = require('axios');
-// app.use(cors());
-app.use(cors({
-  origin: `${process.env.FRONT_END_URL}`, // Replace with your Netlify site URL
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+router.use("/api/auth", authRoutes);
+app.use('/.netlify/functions/app', router);
+
 router.get('/', (req, res) => {
   res.send('App is running..');
 });
@@ -117,6 +116,4 @@ router.post('/chatgpt', async (req, res) => {
         return res.status(500).json({ error: 'Internal server error' });
     }
 });
-router.use("/api/auth", authRoutes);
-app.use('/.netlify/functions/app', router);
 module.exports.handler = serverless(app);
