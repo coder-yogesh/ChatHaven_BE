@@ -118,6 +118,7 @@ app.get('/proxy-image', async (req, res) => {
         }
         const response = await axios.get(url, { responseType: 'arraybuffer' });
         res.set('Content-Type', response.headers['content-type']);
+        console.log('sss', response.data);
         res.send(response.data);
       } catch (error) {
         res.status(500).send('Error fetching image');
