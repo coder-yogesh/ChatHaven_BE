@@ -68,16 +68,18 @@ router.get('/proxy-image', async (req, res) => {
     if (!url) {
       return res.status(400).json({ error: 'URL parameter is missing' });
     }
-
+    console.log('dddd', url);
     // Optional: Validate the URL (basic check)
-    const validUrl = /^https?:\/\/.+\.(jpg|jpeg|png|gif|webp|svg)$/i;
-    if (!validUrl.test(url)) {
-      return res.status(400).json({ error: 'Invalid image URL' });
-    }
+    // const validUrl = /^https?:\/\/.+\.(jpg|jpeg|png|gif|webp|svg)$/i;
+    // if (!validUrl.test(url)) {
+    //   console.log('ddddd');
+    //   return res.status(400).json({ error: 'Invalid image URL' });
+    // }
 
     const response = await axios.get(url, { responseType: 'arraybuffer', timeout: 5000 });
     
     res.set('Content-Type', response.headers['content-type']);
+    console.log('resssss', response.data);
     res.send(response.data);
 
   } catch (error) {
