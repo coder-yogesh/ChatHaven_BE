@@ -118,8 +118,18 @@ app.get('/proxy-image', async (req, res) => {
         }
         const response = await axios.get(url, { responseType: 'arraybuffer' });
         res.set('Content-Type', response.headers['content-type']);
-        console.log('sss', response.data);
+        // console.log('sss', response.data);
         res.send(response.data);
+
+        // return {
+        //     statusCode: 200,
+        //     headers: {
+        //       'Content-Type': response.headers['content-type'],
+        //       'Access-Control-Allow-Origin': '*',
+        //     },
+        //     body: response.data.toString('base64'),
+        //     isBase64Encoded: true,
+        //   };
       } catch (error) {
         res.status(500).send('Error fetching image');
       }
