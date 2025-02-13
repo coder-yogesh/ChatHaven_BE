@@ -6,10 +6,10 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const bodyParse = require('body-parser');
 const dotenv = require('dotenv');
 const authRoutes = require("./auth");
+const cors = require('cors');
 
 
 const app = express();
-const cors = require('cors');
 const { default: axios } = require('axios');
 app.use(
     cors({

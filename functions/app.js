@@ -5,13 +5,30 @@ const bodyParse = require('body-parser');
 const passport = require('passport');
 const session = require('express-session');
 const cors = require('cors');
-const { default: axios } = require('axios');
-const app = express();
-app.use(cors());
 const dotenv = require('dotenv');
-dotenv.config();
-const router = express.Router();
 const authRoutes = require("../auth");
+const app = express();
+const router = express.Router();
+
+const { default: axios } = require('axios');
+app.use(cors());
+dotenv.config();
+app.use(bodyParse.json());
+
+app.use(
+  session({
+      secret: process.env.SESSION_SECRET,
+      resave: false,
+      saveUninitialized: true
+  })
+);
+app.use(passport.initialize());
+app.use(passport.session());
+
+router.use("/api/auth", authRoutes);
+
+const port = Number(process.env.BACK_END_PORT);
+app.use(`${process.env.BACK_END_URL}`, router);
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 console.log('keyyyyy', process.env.GEMINI_API_KEY);
@@ -21,22 +38,10 @@ async function callChatGPT(prompt) {
     const response = await model.generateContent(prompt);
     return response.response.text();
 }
-let records = [];
-app.use(bodyParse.json());
-app.use(
-    session({
-        secret: process.env.SESSION_SECRET,
-        resave: false,
-        saveUninitialized: true
-    })
-);
-app.use(passport.initialize());
-app.use(passport.session());
 
-router.use("/api/auth", authRoutes);
-app.use('/.netlify/functions/app', router);
 
 router.get('/', (req, res) => {
+  console.log('calling');
   res.send('App is running..');
 });
 
@@ -151,7 +156,6 @@ router.post('/chatgpt', async (req, res) => {
         return res.status(500).json({ error: 'Internal server error' });
     }
 });
-const port = process.env.BACK_END_PORT;
 console.log('main port', port);
 if (port === 4000) {
   app.listen(port, () => {
