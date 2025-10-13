@@ -10,15 +10,8 @@ const authRoutes = require("../auth");
 const app = express();
 const router = express.Router();
 
-
 const { default: axios } = require('axios');
-const { callChatGPT } = require('../helper.js');
-app.use(
-    cors({
-      origin: process.env.FRONT_END_URL || "http://localhost:3000", // your frontend URL (React app)
-      credentials: true,
-    })
-);
+app.use(cors());
 dotenv.config();
 app.use(bodyParse.json());
 
@@ -34,12 +27,17 @@ app.use(passport.session());
 
 router.use("/api/auth", authRoutes);
 
-const port = process.env.BACK_END_URL || 4000;
-app.use(process.env.BACK_END_URL, router);
+const port = Number(process.env.BACK_END_PORT);
+app.use(`${process.env.BACK_END_URL}`, router);
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 console.log('keyyyyy', process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+async function callChatGPT(prompt) {
+    const response = await model.generateContent(prompt);
+    return response.response.text();
+}
 
 
 router.get('/', (req, res) => {
@@ -146,22 +144,20 @@ router.get('/demo', (req, res) => {
 
 router.post('/chatgpt', async (req, res) => {
     try {
-        console.log('body', req.body);
-        const { prompt, imagePath } = req.body;
+        console.log('req', req.body);
+        const { prompt } = req.body;
 
         if (!prompt) {
-            return res.status(400).json({ error: 'Prompt is required' });
+            return res.status(400).json({ error: 'Promptttttt is required' });
         }
-        const response = await callChatGPT({ prompt, imagePath });
+        const response = await callChatGPT(prompt);
         return res.status(200).json({ message: response });
     } catch (error) {
         return res.status(500).json({ error: 'Internal server error' });
     }
 });
-
-if (port === 4000) {
-
 console.log('main port', port);
+if (port === 4000) {
   app.listen(port, () => {
     console.log('server running');
   })
