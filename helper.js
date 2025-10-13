@@ -1,7 +1,7 @@
-import fs from "fs";
-import path from "path";
-import dotenv from "dotenv";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+const fs = require("fs");
+const path = require("path");
+const dotenv = require("dotenv");
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 dotenv.config();
 
