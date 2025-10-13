@@ -9,7 +9,7 @@ const dotenv = require('dotenv');
 const authRoutes = require("../auth");
 const app = express();
 const router = express.Router();
-
+const { callChatGPT } = require('../helper');
 const { default: axios } = require('axios');
 app.use(cors());
 dotenv.config();
@@ -34,10 +34,10 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 console.log('keyyyyy', process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-async function callChatGPT(prompt) {
-    const response = await model.generateContent(prompt);
-    return response.response.text();
-}
+// async function callChatGPT(prompt) {
+//     const response = await model.generateContent(prompt);
+//     return response.response.text();
+// }
 
 
 router.get('/', (req, res) => {
