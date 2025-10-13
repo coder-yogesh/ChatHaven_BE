@@ -68,16 +68,18 @@ router.get('/demo', (req, res) => {
 });
 
 router.post('/chatgpt', async (req, res) => {
-  try {
-    const { prompt } = req.body;
-    if (!prompt) return res.status(400).json({ error: 'Prompt is required' });
+    try {
+        console.log('body', req.body);
+        const { prompt, imagePath } = req.body;
 
-    const response = await callChatGPT(prompt);
-    res.status(200).json({ message: response });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+        if (!prompt) {
+            return res.status(400).json({ error: 'Prompt is required' });
+        }
+        const response = await callChatGPT({ prompt, imagePath });
+        return res.status(200).json({ message: response });
+    } catch (error) {
+        return res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
 // Attach router to app
