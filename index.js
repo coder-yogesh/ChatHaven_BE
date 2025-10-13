@@ -11,6 +11,7 @@ const cors = require('cors');
 
 const app = express();
 const { default: axios } = require('axios');
+const { callChatGPT } = require('./helper');
 app.use(
     cors({
       origin: "http://localhost:3000", // your frontend URL (React app)
@@ -92,19 +93,19 @@ app.use(passport.session());
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-async function callChatGPT(prompt) {
-    const response = await model.generateContent(prompt);
-    return response.response.text();
-}
+// async function callChatGPT(prompt) {
+//     const response = await model.generateContent(prompt);
+//     return response.response.text();
+// }
 app.post('/chatgpt', async (req, res) => {
     try {
         console.log('body', req.body);
-        const { prompt } = req.body;
+        const { prompt, imagePath } = req.body;
 
         if (!prompt) {
             return res.status(400).json({ error: 'Prompt is required' });
         }
-        const response = await callChatGPT(prompt);
+        const response = await callChatGPT({ prompt, imagePath });
         return res.status(200).json({ message: response });
     } catch (error) {
         return res.status(500).json({ error: 'Internal server error' });
