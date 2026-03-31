@@ -1,155 +1,143 @@
+// server.js
+
 const express = require('express');
 const passport = require('passport');
 const session = require('express-session');
-// const { OpenAI } = require('openai');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
-const bodyParse = require('body-parser');
+const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
-const authRoutes = require("./auth");
+const authRoutes = require('./auth');
 const cors = require('cors');
+const axios = require('axios');
+const multer = require('multer');
 const fs = require('fs');
+const path = require('path');
 
+// Load env
+dotenv.config();
 
 const app = express();
-const { default: axios } = require('axios');
-const { callChatGPT } = require('./helper');
-const multer = require('multer');
+
+// ===== Middleware =====
+
+// CORS (update frontend URL after deployment)
 app.use(
-    cors({
-      origin: "http://localhost:3000", // your frontend URL (React app)
-      credentials: true,
-    })
+  cors({
+    origin: [
+      'http://localhost:3000',
+      'https://chat-haven-jet.vercel.app/' // CHANGE THIS
+    ],
+    credentials: true,
+  })
 );
-app.use(bodyParse.json());
-dotenv.config();
+
+app.use(bodyParser.json());
+
+// Session (OK for Render, NOT for serverless)
 app.use(
-    session({
-        secret: process.env.SESSION_SECRET,
-        resave: false,
-        saveUninitialized: true
-    })
+  session({
+    secret: process.env.SESSION_SECRET || 'fallback_secret',
+    resave: false,
+    saveUninitialized: true,
+  })
 );
+
 app.use(passport.initialize());
 app.use(passport.session());
 
+// ===== File Upload (Multer) =====
 
-// async function callChatGPT(prompt) {
-//     const url = "https://api.openai.com/v1/chat/completions";
+// Ensure uploads folder exists
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir);
+}
 
-//     const headers = {
-//         "Content-Type": "application/json",
-//         Authorization: `Bearer ${apikey}`,
-//     };
+// Multer config
+const upload = multer({ dest: uploadDir });
 
-//     const data = {
-//         model: "gpt-3.5-turbo",
-//         messages: [
-//             { role: "system", content: "You are a helpful assistant." },
-//             { role: "user", content: prompt },
-//         ],
-//     };
-
-//     try {
-//         const response = await axios.post(url, data, { headers });
-//         const result = response.data.choices[0].message.content;
-//         return result;
-//     } catch (error) {
-//         console.error(
-//             "Error calling ChatGPT API:",
-//             error.response ? error.response.data : error.message
-//         );
-//         throw error;
-//     }
-// }
-
-// const baseURL = 'https://api.aimlapi.com/v1';
-// const apiKey = 'b1d8a1de9f09411095eb63edfec36317';
-// const systemPrompt = "You are a travel agent. Be descriptive and helpful";
-
-
-//openai api's
-
-// const api = new OpenAI({
-//     apiKey,
-//     baseURL
-// })
-// async function callChatGPT(userPrompt) {
-//     const completions = await api.chat.completions.create({
-//         model: "chatgpt-4o-latest",
-//         messages: [
-//             {
-//                 role: 'system',
-//                 content: systemPrompt
-//             },
-//             {
-//                 role: 'user',
-//                 content: userPrompt
-//             }
-//         ]
-//     })
-    
-//     const response = completions.choices[0].message.content;
-//     return response;
-// }
+// ===== AI Setup =====
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-// async function callChatGPT(prompt) {
-//     const response = await model.generateContent(prompt);
-//     return response.response.text();
-// }
-const upload = multer({ dest: 'uploads/' });
+async function callChatGPT(prompt) {
+  try {
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-1.5-flash',
+    });
 
+    const result = await model.generateContent(prompt);
+    return result.response.text();
+  } catch (error) {
+    console.error('AI Error:', error);
+    throw new Error('AI request failed');
+  }
+}
+
+// ===== Routes =====
+
+// Chat endpoint
 app.post('/chatgpt', upload.single('image'), async (req, res) => {
-    try {
-        console.log('body', req.body, req.file);
-        const { prompt } = req.body;
-        // let imagePath;
+  try {
+    const { prompt } = req.body;
 
-        // if (req.file) {
-        //     imagePath = req.file.path; // Path to the uploaded image
-        //     console.log('Uploaded file path:', imagePath);
-        // }
-        if (!prompt) {
-            return res.status(400).json({ error: 'Prompt is required' });
-        }
-        const response = await callChatGPT({ prompt });
-
-        console.log('rese', response);
-        // if (response) fs.unlinkSync(req.file.path); // Clean up the uploaded file
-        return res.status(200).json({ message: response });
-    } catch (error) {
-        return res.status(500).json({ error: 'Internal server error' });
+    if (!prompt) {
+      return res.status(400).json({ error: 'Prompt is required' });
     }
+
+    const response = await callChatGPT(prompt);
+
+    // Cleanup uploaded file (optional)
+    if (req.file) {
+      fs.unlink(req.file.path, () => {});
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: response,
+    });
+  } catch (error) {
+    console.error('Chat Route Error:', error);
+    return res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
 });
+
+// Image proxy (fix CORS issues)
 app.get('/proxy-image', async (req, res) => {
-    try {
-        const { url } = req.query;
-        if (!url) {
-          return res.status(400).send('URL parameter is missing');
-        }
-        const response = await axios.get(url, { responseType: 'arraybuffer' });
-        res.set('Content-Type', response.headers['content-type']);
-        // console.log('sss', response.data);
-        res.send(response.data);
+  try {
+    const { url } = req.query;
 
-        // return {
-        //     statusCode: 200,
-        //     headers: {
-        //       'Content-Type': response.headers['content-type'],
-        //       'Access-Control-Allow-Origin': '*',
-        //     },
-        //     body: response.data.toString('base64'),
-        //     isBase64Encoded: true,
-        //   };
-      } catch (error) {
-        res.status(500).send('Error fetching image');
-      }
-})
-app.use("/api/auth", authRoutes);
+    if (!url) {
+      return res.status(400).send('URL parameter is missing');
+    }
 
-const port = 4000;
-app.listen(port, () => {
-    console.log('server running');
-})
+    const response = await axios.get(url, {
+      responseType: 'arraybuffer',
+    });
+
+    res.set('Content-Type', response.headers['content-type']);
+    res.send(response.data);
+  } catch (error) {
+    console.error('Proxy Image Error:', error);
+    res.status(500).send('Error fetching image');
+  }
+});
+
+// Auth routes
+app.use('/api/auth', authRoutes);
+
+// Health check (IMPORTANT for deployment)
+app.get('/', (req, res) => {
+  res.send('Backend is running 🚀');
+});
+
+// ===== Start Server =====
+
+const PORT = process.env.PORT || 4000;
+
+app.listen(PORT, () => {
+  console.log(`✅ Server running on port ${PORT}`);
+});
