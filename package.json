@@ -1,7 +1,7 @@
 {
   "name": "chatgpt-api",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "build": "netlify deploy --prod",
     "dev": "nodemon server.js",
