@@ -1,13 +1,13 @@
 const fs = require("fs");
 const path = require("path");
 const dotenv = require("dotenv");
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+// const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 dotenv.config();
 
 // Initialize Gemini AI
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-001" });
+// const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-001" });
 
 console.log("🤖 Your Gemini AI Agent is ready! Type 'exit' to quit.\n");
 
@@ -19,7 +19,7 @@ function readImageAsBase64(filePath) {
 }
 
 // Main function
-async function callChatGPT({ prompt }) {
+async function callChatGPT(prompt) {
   try {
     console.log("prompt:", prompt);
 

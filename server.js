@@ -3,7 +3,7 @@
 const express = require('express');
 const passport = require('passport');
 const session = require('express-session');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+// const { GoogleGenerativeAI } = require('@google/generative-ai');
 const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
 const authRoutes = require('./auth');
@@ -12,6 +12,7 @@ const axios = require('axios');
 const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
+const { callChatGPT } = require('./helper');
 
 // Load env
 dotenv.config();
@@ -24,7 +25,6 @@ const app = express();
 app.use(
   cors({
     origin: [
-      'http://localhost:3000',
       'https://chat-haven-jet.vercel.app/' // CHANGE THIS
     ],
     credentials: true,
@@ -58,21 +58,21 @@ const upload = multer({ dest: uploadDir });
 
 // ===== AI Setup =====
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-async function callChatGPT(prompt) {
-  try {
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-1.5-flash',
-    });
+// async function callChatGPT(prompt) {
+//   try {
+//     const model = genAI.getGenerativeModel({
+//       model: 'gemini-1.5-flash',
+//     });
 
-    const result = await model.generateContent(prompt);
-    return result.response.text();
-  } catch (error) {
-    console.error('AI Error:', error);
-    throw new Error('AI request failed');
-  }
-}
+//     const result = await model.generateContent(prompt);
+//     return result.response.text();
+//   } catch (error) {
+//     console.error('AI Error:', error);
+//     throw new Error('AI request failed');
+//   }
+// }
 
 // ===== Routes =====
 
