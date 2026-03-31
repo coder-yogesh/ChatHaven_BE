@@ -45,8 +45,27 @@ router.get(
     const secretKey = crypto.randomBytes(32).toString("hex");
     const token = jwt.sign({ user: user._json }, secretKey, { expiresIn: "1h" });
 
-    // Redirect with the token
-    res.redirect(`${process.env.FRONT_END_URL}/dashboard?token=${token}`);
+    // 🔥 Detect if request is from extension
+    const isExtension = req.query.ext === "true";
+
+    if (isExtension) {
+      // 🧩 Extension flow
+      return res.send(`
+        <script>
+          if (window.opener) {
+            window.opener.postMessage({ token: "${token}" }, "*");
+            window.close();
+          } else {
+            document.body.innerText = "You can close this tab.";
+          }
+        </script>
+      `);
+    }
+
+    // 🌐 Web flow
+    return res.redirect(
+      `${process.env.FRONT_END_URL}/auth-success?token=${token}`
+    );
   }
 );
 

@@ -19,50 +19,28 @@ function readImageAsBase64(filePath) {
 }
 
 // Main function
-async function callChatGPT({ prompt, imagePath }) {
+async function callChatGPT({ prompt }) {
   try {
-    console.log("Obj", { prompt, imagePath });
-    let result;
+    console.log("prompt:", prompt);
 
-    if (imagePath) {
-      console.log("📷 Processing image at:", imagePath);
+    const response = await fetch("http://localhost:11434/api/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        // model: "llama3:8b",
+        model: "phi",
+        prompt,
+        stream: false
+      })
+    });
 
-      const imageBase64 = readImageAsBase64(imagePath);
+    const data = await response.json();
 
-      result = await model.generateContent({
-        contents: [
-          {
-            role: "user",
-            parts: [
-              { text: prompt || "Describe this image." },
-              {
-                inline_data: {
-                  mime_type: "image/png",
-                  data: imageBase64,
-                },
-              },
-            ],
-          },
-        ],
-      });
-    } else {
-      // Regular text input
-      result = await model.generateContent({
-        contents: [
-          {
-            role: "user",
-            parts: [{ text: prompt }],
-          },
-        ],
-      });
-    }
+    console.log("AI:", data.response);
 
-    // Extract text response
-    const response = result.response; // result.response is already a promise resolved by generateContent
-    const text = response.text();     // Get the text from response
-    console.log("AI:", text, "\n");
-
-    return text;
+    return data.response; // ✅ correct
   } catch (err) {
     console.error("❌ Error:", err.message || err);
     throw new Error(err.message || "Unknown error");

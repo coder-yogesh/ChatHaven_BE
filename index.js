@@ -7,11 +7,13 @@ const bodyParse = require('body-parser');
 const dotenv = require('dotenv');
 const authRoutes = require("./auth");
 const cors = require('cors');
+const fs = require('fs');
 
 
 const app = express();
 const { default: axios } = require('axios');
 const { callChatGPT } = require('./helper');
+const multer = require('multer');
 app.use(
     cors({
       origin: "http://localhost:3000", // your frontend URL (React app)
@@ -97,15 +99,25 @@ const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 //     const response = await model.generateContent(prompt);
 //     return response.response.text();
 // }
-app.post('/chatgpt', async (req, res) => {
-    try {
-        console.log('body', req.body);
-        const { prompt, imagePath } = req.body;
+const upload = multer({ dest: 'uploads/' });
 
+app.post('/chatgpt', upload.single('image'), async (req, res) => {
+    try {
+        console.log('body', req.body, req.file);
+        const { prompt } = req.body;
+        // let imagePath;
+
+        // if (req.file) {
+        //     imagePath = req.file.path; // Path to the uploaded image
+        //     console.log('Uploaded file path:', imagePath);
+        // }
         if (!prompt) {
             return res.status(400).json({ error: 'Prompt is required' });
         }
-        const response = await callChatGPT({ prompt, imagePath });
+        const response = await callChatGPT({ prompt });
+
+        console.log('rese', response);
+        // if (response) fs.unlinkSync(req.file.path); // Clean up the uploaded file
         return res.status(200).json({ message: response });
     } catch (error) {
         return res.status(500).json({ error: 'Internal server error' });
