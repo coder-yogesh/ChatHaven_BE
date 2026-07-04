@@ -4,8 +4,8 @@
 // an image file (uses a vision-capable model automatically when an image
 // is provided).
 
-import fetch from "node-fetch";
-import fs from "fs";
+const fetch = require("node-fetch");
+const fs = require("fs");
 
 const API_URL = "https://api.groq.com/openai/v1/chat/completions";
 const TEXT_MODEL = "openai/gpt-oss-120b";
