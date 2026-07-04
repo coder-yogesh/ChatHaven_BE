@@ -1,51 +1,70 @@
-const fs = require("fs");
-const path = require("path");
-const dotenv = require("dotenv");
-// const { GoogleGenerativeAI } = require("@google/generative-ai");
+// chatgpt.js
+// Drop-in replacement for an OpenAI "callChatGPT" helper, backed by Groq's
+// free API (OpenAI-compatible). Supports plain text prompts and, optionally,
+// an image file (uses a vision-capable model automatically when an image
+// is provided).
 
-dotenv.config();
+import fetch from "node-fetch";
+import fs from "fs";
 
-// Initialize Gemini AI
-// const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-// const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-001" });
+const API_URL = "https://api.groq.com/openai/v1/chat/completions";
+const TEXT_MODEL = "openai/gpt-oss-120b";
+const VISION_MODEL = "qwen/qwen3.6-27b";
 
-console.log("🤖 Your Gemini AI Agent is ready! Type 'exit' to quit.\n");
-
-// Helper: read image and convert to base64
-function readImageAsBase64(filePath) {
-  const absolutePath = path.resolve(filePath);
-  const imageBuffer = fs.readFileSync(absolutePath);
-  return imageBuffer.toString("base64");
-}
-
-// Main function
-async function callChatGPT(prompt) {
-  try {
-    console.log("prompt:", prompt);
-
-    const response = await fetch("http://localhost:11434/api/generate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        // model: "llama3:8b",
-        model: "phi",
-        prompt,
-        stream: false
-      })
-    });
-
-    const data = await response.json();
-
-    console.log("AI:", data.response);
-
-    return data.response; // ✅ correct
-  } catch (err) {
-    console.error("❌ Error:", err.message || err);
-    throw new Error(err.message || "Unknown error");
+/**
+ * Call the AI with a text prompt, optionally including an image.
+ * @param {string} prompt - The user's text prompt.
+ * @param {string} [imagePath] - Local path to an uploaded image (optional).
+ * @returns {Promise<string>} - The AI's reply text.
+ */
+export async function callChatGPT(prompt, imagePath) {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) {
+    throw new Error("Missing GROQ_API_KEY environment variable");
   }
-}
 
-// Export for CommonJS
-module.exports = { callChatGPT };
+  let model = TEXT_MODEL;
+  let userContent = prompt;
+
+  // If an image was uploaded, switch to the vision model and send it
+  // as a base64 data URL alongside the text prompt.
+  if (imagePath) {
+    const imageBuffer = fs.readFileSync(imagePath);
+    const base64Image = imageBuffer.toString("base64");
+    const ext = imagePath.split(".").pop().toLowerCase();
+    const mimeType = ext === "png" ? "image/png" : "image/jpeg";
+
+    model = VISION_MODEL;
+    userContent = [
+      { type: "text", text: prompt },
+      {
+        type: "image_url",
+        image_url: { url: `data:${mimeType};base64,${base64Image}` },
+      },
+    ];
+  }
+
+  const response = await fetch(API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model,
+      messages: [
+        { role: "system", content: "You are a helpful assistant." },
+        { role: "user", content: userContent },
+      ],
+      temperature: 0.7,
+    }),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`Groq API error ${response.status}: ${errText}`);
+  }
+
+  const data = await response.json();
+  return data.choices[0].message.content;
+}

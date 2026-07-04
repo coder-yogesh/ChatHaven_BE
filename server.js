@@ -25,7 +25,8 @@ const app = express();
 app.use(
   cors({
     origin: [
-      'https://chat-haven-jet.vercel.app/' // CHANGE THIS
+      'https://chat-haven-jet.vercel.app/',
+      'http://localhost:3000'
     ],
     credentials: true,
   })
@@ -42,6 +43,8 @@ app.use(
   })
 );
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -53,8 +56,8 @@ app.use(passport.session());
 //   fs.mkdirSync(uploadDir);
 // }
 
-// // Multer config
-// const upload = multer({ dest: uploadDir });
+// Multer config
+const upload = multer({ dest: "uploads/" });
 
 // ===== AI Setup =====
 
@@ -77,33 +80,64 @@ app.use(passport.session());
 // ===== Routes =====
 
 // Chat endpoint
-// app.post('/chatgpt', upload.single('image'), async (req, res) => {
-//   try {
-//     const { prompt } = req.body;
+app.post("/chatgpt", upload.single("image"), async (req, res) => {
+  try {
+    const { prompt } = req.body;
+ 
+    if (!prompt) {
+      return res.status(400).json({ error: "Prompt is required" });
+    }
+ 
+    const imagePath = req.file ? req.file.path : undefined;
+    const response = await callChatGPT(prompt, imagePath);
+ 
+    if (req.file) {
+      fs.unlink(req.file.path, () => {});
+    }
+ 
+    return res.status(200).json({
+      success: true,
+      message: response,
+    });
+  } catch (error) {
+    console.error("Chat Route Error:", error);
+    return res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
 
-//     if (!prompt) {
-//       return res.status(400).json({ error: 'Prompt is required' });
-//     }
 
-//     const response = await callChatGPT(prompt);
+// In-memory feedback store — swap for a real DB table in production.
+// Shape: { [messageId]: 'up' | 'down' }
+const feedbackStore = {};
+ 
+app.post("/feedback", (req, res) => {
+  try {
+    const { messageId, type } = req.body;
+ 
+    if (!messageId) {
+      return res.status(400).json({ success: false, error: "messageId is required" });
+    }
+    if (type !== "up" && type !== "down" && type !== null) {
+      return res.status(400).json({ success: false, error: "type must be 'up', 'down', or null" });
+    }
+ 
+    if (type === null) {
+      delete feedbackStore[messageId];
+    } else {
+      feedbackStore[messageId] = type;
+    }
+ 
+    console.log(`Feedback recorded: ${messageId} -> ${type}`);
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    console.error("Feedback Route Error:", error);
+    return res.status(500).json({ success: false, error: error.message });
+  }
+});
 
-//     // Cleanup uploaded file (optional)
-//     if (req.file) {
-//       fs.unlink(req.file.path, () => {});
-//     }
-
-//     return res.status(200).json({
-//       success: true,
-//       message: response,
-//     });
-//   } catch (error) {
-//     console.error('Chat Route Error:', error);
-//     return res.status(500).json({
-//       success: false,
-//       error: error.message,
-//     });
-//   }
-// });
 
 // Image proxy (fix CORS issues)
 app.get('/proxy-image', async (req, res) => {
