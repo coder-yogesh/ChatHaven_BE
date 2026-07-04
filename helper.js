@@ -17,7 +17,7 @@ const VISION_MODEL = "qwen/qwen3.6-27b";
  * @param {string} [imagePath] - Local path to an uploaded image (optional).
  * @returns {Promise<string>} - The AI's reply text.
  */
-export async function callChatGPT(prompt, imagePath) {
+async function callChatGPT(prompt, imagePath) {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
     throw new Error("Missing GROQ_API_KEY environment variable");
