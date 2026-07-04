@@ -5,7 +5,7 @@
 // is provided).
 
 const fetch = require("node-fetch");
-const fs = require("fs");
+// const fs = require("fs");
 
 const API_URL = "https://api.groq.com/openai/v1/chat/completions";
 const TEXT_MODEL = "openai/gpt-oss-120b";
@@ -14,10 +14,10 @@ const VISION_MODEL = "qwen/qwen3.6-27b";
 /**
  * Call the AI with a text prompt, optionally including an image.
  * @param {string} prompt - The user's text prompt.
- * @param {string} [imagePath] - Local path to an uploaded image (optional).
+ * @param {Buffer} [imageBuffer] - Buffer containing the image data (optional).
  * @returns {Promise<string>} - The AI's reply text.
  */
-async function callChatGPT(prompt, imagePath) {
+async function callChatGPT(prompt, imageBuffer) {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
     throw new Error("Missing GROQ_API_KEY environment variable");
@@ -28,18 +28,21 @@ async function callChatGPT(prompt, imagePath) {
 
   // If an image was uploaded, switch to the vision model and send it
   // as a base64 data URL alongside the text prompt.
-  if (imagePath) {
-    const imageBuffer = fs.readFileSync(imagePath);
+  if (imageBuffer) {
+    // const imageBuffer = fs.readFileSync(imagePath);
     const base64Image = imageBuffer.toString("base64");
-    const ext = imagePath.split(".").pop().toLowerCase();
-    const mimeType = ext === "png" ? "image/png" : "image/jpeg";
+    // const ext = imagePath.split(".").pop().toLowerCase();
+    // const mimeType = ext === "png" ? "image/png" : "image/jpeg";
 
     model = VISION_MODEL;
     userContent = [
       { type: "text", text: prompt },
       {
         type: "image_url",
-        image_url: { url: `data:${mimeType};base64,${base64Image}` },
+        // image_url: { url: `data:${mimeType};base64,${base64Image}` },
+        image_url: {
+          url: `data:image/jpeg;base64,${base64Image}`,
+        }
       },
     ];
   }

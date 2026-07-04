@@ -25,7 +25,7 @@ const app = express();
 app.use(
   cors({
     origin: [
-      'https://chat-haven-jet.vercel.app/',
+      'https://chat-haven-jet.vercel.app',
       'http://localhost:3000'
     ],
     credentials: true,
@@ -57,7 +57,10 @@ app.use(passport.session());
 // }
 
 // Multer config
-const upload = multer({ dest: "uploads/" });
+// const upload = multer({ dest: "uploads/" });
+const upload = multer({
+  storage: multer.memoryStorage(),
+});
 
 // ===== AI Setup =====
 
@@ -88,12 +91,12 @@ app.post("/chatgpt", upload.single("image"), async (req, res) => {
       return res.status(400).json({ error: "Prompt is required" });
     }
  
-    const imagePath = req.file ? req.file.path : undefined;
-    const response = await callChatGPT(prompt, imagePath);
+    const imageBuffer = req.file ? req.file.buffer : undefined;
+    const response = await callChatGPT(prompt, imageBuffer);
  
-    if (req.file) {
-      fs.unlink(req.file.path, () => {});
-    }
+    // if (req.file) {
+    //   fs.unlink(req.file.path, () => {});
+    // }
  
     return res.status(200).json({
       success: true,
@@ -172,6 +175,8 @@ app.get('/', (req, res) => {
 
 const PORT = process.env.PORT || 4000;
 
-app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
-});
+// app.listen(PORT, () => {
+//   console.log(`✅ Server running on port ${PORT}`);
+// });
+
+module.exports = app;
