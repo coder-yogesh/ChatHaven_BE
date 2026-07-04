@@ -63,6 +63,7 @@ router.get(
     }
 
     // 🌐 Web flow
+    console.log("Redirecting to:", `${process.env.FRONT_END_URL}/auth-success?token=${token}`);
     return res.redirect(
       `${process.env.FRONT_END_URL}/auth-success?token=${token}`
     );
