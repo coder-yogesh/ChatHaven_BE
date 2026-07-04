@@ -48,13 +48,13 @@ app.use(passport.session());
 // ===== File Upload (Multer) =====
 
 // Ensure uploads folder exists
-const uploadDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir);
-}
+// const uploadDir = path.join(__dirname, 'uploads');
+// if (!fs.existsSync(uploadDir)) {
+//   fs.mkdirSync(uploadDir);
+// }
 
-// Multer config
-const upload = multer({ dest: uploadDir });
+// // Multer config
+// const upload = multer({ dest: uploadDir });
 
 // ===== AI Setup =====
 
@@ -77,33 +77,33 @@ const upload = multer({ dest: uploadDir });
 // ===== Routes =====
 
 // Chat endpoint
-app.post('/chatgpt', upload.single('image'), async (req, res) => {
-  try {
-    const { prompt } = req.body;
+// app.post('/chatgpt', upload.single('image'), async (req, res) => {
+//   try {
+//     const { prompt } = req.body;
 
-    if (!prompt) {
-      return res.status(400).json({ error: 'Prompt is required' });
-    }
+//     if (!prompt) {
+//       return res.status(400).json({ error: 'Prompt is required' });
+//     }
 
-    const response = await callChatGPT(prompt);
+//     const response = await callChatGPT(prompt);
 
-    // Cleanup uploaded file (optional)
-    if (req.file) {
-      fs.unlink(req.file.path, () => {});
-    }
+//     // Cleanup uploaded file (optional)
+//     if (req.file) {
+//       fs.unlink(req.file.path, () => {});
+//     }
 
-    return res.status(200).json({
-      success: true,
-      message: response,
-    });
-  } catch (error) {
-    console.error('Chat Route Error:', error);
-    return res.status(500).json({
-      success: false,
-      error: error.message,
-    });
-  }
-});
+//     return res.status(200).json({
+//       success: true,
+//       message: response,
+//     });
+//   } catch (error) {
+//     console.error('Chat Route Error:', error);
+//     return res.status(500).json({
+//       success: false,
+//       error: error.message,
+//     });
+//   }
+// });
 
 // Image proxy (fix CORS issues)
 app.get('/proxy-image', async (req, res) => {
