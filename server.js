@@ -13,6 +13,7 @@ const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 const { callChatGPT } = require('./helper');
+const chatHistoryRoutes = require('./chathistory');
 
 // Load env
 dotenv.config();
@@ -47,6 +48,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
 app.use(passport.session());
+
+app.use("/", chatHistoryRoutes);
 
 // ===== File Upload (Multer) =====
 
@@ -175,8 +178,8 @@ app.get('/', (req, res) => {
 
 const PORT = process.env.PORT || 4000;
 
-// app.listen(PORT, () => {
-//   console.log(`✅ Server running on port ${PORT}`);
-// });
+app.listen(PORT, () => {
+  console.log(`✅ Server running on port ${PORT}`);
+});
 
-module.exports = app;
+// module.exports = app;
