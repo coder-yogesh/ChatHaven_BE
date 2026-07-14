@@ -93,9 +93,16 @@ app.post("/chatgpt", upload.single("image"), async (req, res) => {
     if (!prompt) {
       return res.status(400).json({ error: "Prompt is required" });
     }
+
+    // Each user brings their own Groq key so everyone's requests count
+    // against *their* free-tier limits instead of one shared key. The
+    // frontend stores it in localStorage and sends it on every request via
+    // this header — it is never written to disk, a database, or the logs
+    // below; it only exists in memory for the duration of this request.
+    const userGroqKey = req.headers["x-groq-api-key"];
  
     const imageBuffer = req.file ? req.file.buffer : undefined;
-    const response = await callChatGPT(prompt, imageBuffer);
+    const response = await callChatGPT(prompt, imageBuffer, userGroqKey);
  
     // if (req.file) {
     //   fs.unlink(req.file.path, () => {});
@@ -106,11 +113,56 @@ app.post("/chatgpt", upload.single("image"), async (req, res) => {
       message: response,
     });
   } catch (error) {
-    console.error("Chat Route Error:", error);
+    console.error("Chat Route Error:", error.message);
+
+    // Distinct status codes so the frontend can tell "you need to add a
+    // key" apart from "the key you added doesn't work" apart from a
+    // generic failure, and react accordingly (e.g. open Settings).
+    if (error.code === "NO_GROQ_KEY") {
+      return res.status(401).json({
+        success: false,
+        code: "NO_GROQ_KEY",
+        error: "Add your Groq API key in Settings to start chatting.",
+      });
+    }
+    if (error.code === "INVALID_GROQ_KEY") {
+      return res.status(401).json({
+        success: false,
+        code: "INVALID_GROQ_KEY",
+        error: "That Groq API key was rejected. Check it in Settings.",
+      });
+    }
+
     return res.status(500).json({
       success: false,
       error: error.message,
     });
+  }
+});
+
+// Validate a Groq API key without spending a chat completion on it — the
+// Settings modal calls this right after the user pastes a key in, so they
+// get instant "yes this works" / "no it doesn't" feedback. The key is read
+// from the header and used for exactly one lightweight request; nothing
+// about it is stored or logged here.
+app.post("/validate-groq-key", async (req, res) => {
+  try {
+    const key = req.headers["x-groq-api-key"];
+    if (!key) {
+      return res.status(400).json({ success: false, error: "No API key provided" });
+    }
+
+    await axios.get("https://api.groq.com/openai/v1/models", {
+      headers: { Authorization: `Bearer ${key}` },
+    });
+
+    return res.status(200).json({ success: true, valid: true });
+  } catch (error) {
+    if (error.response?.status === 401) {
+      return res.status(200).json({ success: true, valid: false });
+    }
+    console.error("Validate Groq Key Error:", error.message);
+    return res.status(500).json({ success: false, error: "Could not validate key" });
   }
 });
 

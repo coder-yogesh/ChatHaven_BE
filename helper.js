@@ -15,12 +15,18 @@ const VISION_MODEL = "qwen/qwen3.6-27b";
  * Call the AI with a text prompt, optionally including an image.
  * @param {string} prompt - The user's text prompt.
  * @param {Buffer} [imageBuffer] - Buffer containing the image data (optional).
+ * @param {string} [userApiKey] - The requesting user's own Groq API key, sent
+ *   per-request from the client (their browser's localStorage). Never stored
+ *   server-side — it only exists for the lifetime of this one call. Falls
+ *   back to the shared GROQ_API_KEY env var if the user hasn't set one.
  * @returns {Promise<string>} - The AI's reply text.
  */
-async function callChatGPT(prompt, imageBuffer) {
-  const apiKey = process.env.GROQ_API_KEY;
+async function callChatGPT(prompt, imageBuffer, userApiKey) {
+  const apiKey = userApiKey || process.env.GROQ_API_KEY;
   if (!apiKey) {
-    throw new Error("Missing GROQ_API_KEY environment variable");
+    const err = new Error("No Groq API key available for this request.");
+    err.code = "NO_GROQ_KEY";
+    throw err;
   }
 
   let model = TEXT_MODEL;
@@ -65,7 +71,9 @@ async function callChatGPT(prompt, imageBuffer) {
 
   if (!response.ok) {
     const errText = await response.text();
-    throw new Error(`Groq API error ${response.status}: ${errText}`);
+    const err = new Error(`Groq API error ${response.status}: ${errText}`);
+    if (response.status === 401) err.code = "INVALID_GROQ_KEY";
+    throw err;
   }
 
   const data = await response.json();
