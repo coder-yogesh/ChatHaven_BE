@@ -12,7 +12,7 @@ const axios = require('axios');
 const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
-const { callChatGPT } = require('./helper');
+const { callChatGPT, generateImage } = require('./helper');
 const chatHistoryRoutes = require('./chathistory');
 
 // Load env
@@ -137,6 +137,29 @@ app.post("/chatgpt", upload.single("image"), async (req, res) => {
       success: false,
       error: error.message,
     });
+  }
+});
+
+// Explicit image-generation endpoint — a dedicated "Generate image" button
+// in the UI can call this directly instead of relying on callChatGPT's
+// prompt-sniffing heuristic, which is more reliable when the user's intent
+// is unambiguous (e.g. an "Image" mode toggle in the composer).
+app.post("/generate-image", async (req, res) => {
+  try {
+    const { prompt } = req.body;
+    if (!prompt) {
+      return res.status(400).json({ success: false, error: "Prompt is required" });
+    }
+
+    const imageUrl = await generateImage(prompt);
+    return res.status(200).json({
+      success: true,
+      message: `![${prompt}](${imageUrl})`,
+      imageUrl,
+    });
+  } catch (error) {
+    console.error("Generate Image Error:", error.message);
+    return res.status(500).json({ success: false, error: error.message });
   }
 });
 
